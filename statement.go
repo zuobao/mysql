@@ -25,7 +25,13 @@ func (stmt *mysqlStmt) Close() error {
 	}
 
 	err := stmt.mc.writeCommandPacketUint32(comStmtClose, stmt.id)
+
+	if stmt.columns != nil {
+		putFields(stmt.columns)
+		stmt.columns = nil
+	}
 	stmt.mc = nil
+
 	return err
 }
 
@@ -84,7 +90,9 @@ func (stmt *mysqlStmt) Query(args []driver.Value) (driver.Rows, error) {
 		return nil, err
 	}
 
-	rows := &mysqlRows{mc, true, nil, false}
+	rows := newMysqlRows()
+	rows.mc = stmt.mc
+	rows.binary = true
 
 	if resLen > 0 {
 		// Columns
@@ -98,5 +106,5 @@ func (stmt *mysqlStmt) Query(args []driver.Value) (driver.Rows, error) {
 		}
 	}
 
-	return rows, err
+	return &mysqlRowsI{rows}, err
 }

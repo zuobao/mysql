@@ -121,3 +121,42 @@ func (b *buffer) takeCompleteBuffer() []byte {
 	}
 	return nil
 }
+
+var fieldCache = make(chan []mysqlField, 16)
+
+func makeFields(n int) []mysqlField {
+	select {
+	case f := <-fieldCache:
+		if cap(f) >= n {
+			return f[:n]
+		}
+	default:
+	}
+	return make([]mysqlField, n)
+}
+
+func putFields(f []mysqlField) {
+	select {
+	case fieldCache <- f:
+	default:
+	}
+}
+
+var rowsCache = make(chan *mysqlRows, 16)
+
+func newMysqlRows() *mysqlRows {
+	select {
+	case r := <-rowsCache:
+		return r
+	default:
+		return new(mysqlRows)
+	}
+}
+
+func putMysqlRows(r *mysqlRows) {
+	*r = mysqlRows{} // zero it
+	select {
+	case rowsCache <- r:
+	default:
+	}
+}

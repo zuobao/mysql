@@ -537,7 +537,7 @@ func (mc *mysqlConn) handleOkPacket(data []byte) error {
 // Read Packets as Field Packets until EOF-Packet or an Error appears
 // http://dev.mysql.com/doc/internals/en/com-query-response.html#packet-Protocol::ColumnDefinition41
 func (mc *mysqlConn) readColumns(count int) ([]mysqlField, error) {
-	columns := make([]mysqlField, count)
+	columns := makeFields(count)
 
 	for i := 0; ; i++ {
 		data, err := mc.readPacket()
@@ -585,7 +585,7 @@ func (mc *mysqlConn) readColumns(count int) ([]mysqlField, error) {
 		if err != nil {
 			return nil, err
 		}
-		columns[i].name = string(name)
+		columns[i].name = string(name) // TODO(bradfitz): garbage. intern these.
 		pos += n
 
 		// Original name [len coded string]
