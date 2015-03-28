@@ -209,7 +209,7 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 // http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::HandshakeResponse
 func (mc *mysqlConn) writeAuthPacket(cipher []byte) error {
 	// Adjust client flags based on server support
-	clientFlags := clientProtocol41 |
+	clientFlags := clientProtocol41 | clientMultiStatements | clientMultiResults |
 		clientSecureConn |
 		clientLongPassword |
 		clientTransactions |
